@@ -1,0 +1,6 @@
+{
+  "name": "یادآور زبل",
+  "description": "یک برنامه یادآور کارهای روزمره هوشمند و با امکانات شخصی‌سازی به زبان فارسی و راست‌چین برای اندروید.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

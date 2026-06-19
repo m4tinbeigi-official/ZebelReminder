@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="#1B1F2A"
+    android:padding="10dp"
+    android:layout_marginHorizontal="2dp">
+
+    <!-- Title and details container -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="start|center_vertical"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/routine_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="عنوان روتین"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/routine_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ساعت ۰۸:۰۰"
+            android:textColor="#8E9199"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- Tactical Complete / Done Button -->
+    <ImageView
+        android:id="@+id/btn_complete"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_circle_outlined"
+        android:scaleType="fitCenter"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="ثبت وضعیت انجام" />
+
+</LinearLayout>
