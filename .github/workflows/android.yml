@@ -27,11 +27,19 @@ jobs:
     - name: Create .env file for Secrets Gradle Plugin
       run: echo "GEMINI_API_KEY=placeholder" > .env
 
-    - name: Build Release APK
+    - name: Decode Keystore File
+      run: echo "${{ secrets.RELEASE_KEY_BASE64 }}" | base64 -d > ${{ github.workspace }}/release.jks
+
+    - name: Build and Sign Release APK
+      env:
+        RELEASE_KEY_FILE: ${{ github.workspace }}/release.jks
+        RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+        RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
       run: ./gradlew assembleRelease
 
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-unsigned
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        name: app-release-signed
+        path: app/build/outputs/apk/release/app-release.apk
