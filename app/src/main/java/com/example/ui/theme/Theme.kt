@@ -9,45 +9,52 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = CalmTealPrimary,
+    primary = DarkPrimary,
+    onPrimary = SoftSurface,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
     secondary = CalmTealDark,
     tertiary = CalmTealLight,
-    background = OnSurfaceText, // Slate charcoal background for dark theme
-    surface = ColorBorderValueHolder.DarkSurface,
+    background = DarkBackground,
+    surface = DarkSurface,
     error = ErrorRed,
-    onPrimary = SoftSurface,
-    onSecondary = SoftSurface,
-    onBackground = SoftBackground,
-    onSurface = SoftBackground
+    onBackground = DarkOnSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = Color(0xFF1E293B), // Slate 800
+    onSurfaceVariant = InactiveGrey,
+    outline = CardBorderColorDark
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = CalmTealPrimary,
+    onPrimary = SoftSurface,
+    primaryContainer = CalmTealLight,
+    onPrimaryContainer = CalmTealDark,
     secondary = CalmTealDark,
     tertiary = CalmTealLight,
     background = SoftBackground,
     surface = SoftSurface,
     error = ErrorRed,
-    onPrimary = SoftSurface,
-    onSecondary = SoftSurface,
     onBackground = OnSurfaceText,
-    onSurface = OnSurfaceText
+    onSurface = OnSurfaceText,
+    surfaceVariant = Color(0xFFF1F5F9), // Slate 100
+    onSurfaceVariant = Color(0xFF475569), // Slate 600
+    outline = CardBorderColor
 )
 
-// Helper object to host static colors for cleanliness
+// Helper object to host static colors for cleanliness and compatibility
 object ColorBorderValueHolder {
-    val DarkSurface = androidx.compose.ui.graphics.Color(0xFF334155) // Slate 700
+    val DarkSurface = Color(0xFF151F32) // matches DarkSurface
 }
 
 @Composable
 fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     fontSizeScale: Float = 1.0f,
-    // Dynamic color is available on Android 12+ (disable for strict themed branding look if needed)
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
