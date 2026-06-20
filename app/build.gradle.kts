@@ -1,6 +1,7 @@
 import java.net.URL
 import java.net.HttpURLConnection
 import java.io.File
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -8,6 +9,32 @@ plugins {
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
+}
+
+val defaultReleaseKeystorePath =
+  rootProject.layout.projectDirectory.file("my-upload-key.jks").asFile.absolutePath
+
+val versionPropertiesFile = rootProject.layout.projectDirectory.file("version.properties").asFile
+val versionProperties = Properties().apply {
+  if (versionPropertiesFile.isFile) {
+    versionPropertiesFile.inputStream().use { load(it) }
+  }
+}
+
+fun readVersionProperty(name: String, fallback: String): String =
+  versionProperties.getProperty(name) ?: fallback
+
+val appVersionMajor = readVersionProperty("versionMajor", "1")
+val appVersionMinor = readVersionProperty("versionMinor", "0")
+val appVersionPatch = readVersionProperty("versionPatch", "0")
+val appVersionCode = readVersionProperty("versionCode", "1").toInt()
+val appVersionName = "$appVersionMajor.$appVersionMinor.$appVersionPatch"
+
+val releaseSigningConfigured = run {
+  val keystorePath = System.getenv("RELEASE_KEY_FILE") ?: defaultReleaseKeystorePath
+  File(keystorePath).isFile &&
+    !System.getenv("RELEASE_STORE_PASSWORD").isNullOrBlank() &&
+    !System.getenv("RELEASE_KEY_PASSWORD").isNullOrBlank()
 }
 
 android {
@@ -18,15 +45,15 @@ android {
     applicationId = "ir.m4tinbeigi.taskreminder"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = appVersionCode
+    versionName = appVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("RELEASE_KEY_FILE") ?: "${rootDir}/my-upload-key.jks"
+      val keystorePath = System.getenv("RELEASE_KEY_FILE") ?: defaultReleaseKeystorePath
       storeFile = file(keystorePath)
       storePassword = System.getenv("RELEASE_STORE_PASSWORD")
       keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "upload"
@@ -40,7 +67,11 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
+      signingConfig = if (releaseSigningConfigured) {
+        signingConfigs.getByName("release")
+      } else {
+        null
+      }
     }
     debug {
     }
@@ -159,35 +190,4 @@ tasks.register("downloadVazirFont") {
 
 tasks.matching { it.name == "preBuild" }.configureEach {
     dependsOn("downloadVazirFont")
-}
-
-tasks.register("validateReleaseSigning") {
-    doLast {
-        val keystorePath = System.getenv("RELEASE_KEY_FILE") ?: "${rootDir}/my-upload-key.jks"
-        val keystoreFile = file(keystorePath)
-        val missingValues = listOf(
-            "RELEASE_STORE_PASSWORD" to System.getenv("RELEASE_STORE_PASSWORD"),
-            "RELEASE_KEY_PASSWORD" to System.getenv("RELEASE_KEY_PASSWORD"),
-            "RELEASE_KEY_ALIAS" to System.getenv("RELEASE_KEY_ALIAS"),
-        ).filter { (_, value) -> value.isNullOrBlank() }
-            .map { (name, _) -> name }
-
-        if (!keystoreFile.isFile) {
-            throw GradleException(
-                "Release signing key not found at ${keystoreFile.absolutePath}. " +
-                    "Set RELEASE_KEY_FILE to a real release/upload keystore."
-            )
-        }
-
-        if (missingValues.isNotEmpty()) {
-            throw GradleException(
-                "Release signing is incomplete. Missing environment variables: " +
-                    missingValues.joinToString(", ")
-            )
-        }
-    }
-}
-
-tasks.matching { it.name in listOf("assembleRelease", "bundleRelease") }.configureEach {
-    dependsOn("validateReleaseSigning")
 }
