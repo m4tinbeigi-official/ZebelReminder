@@ -1,0 +1,15 @@
+#!/bin/sh
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+remote=$(git remote 2>/dev/null | head -n 1)
+
+if [ -z "$remote" ] || [ -z "$branch" ]; then
+  exit 0
+fi
+
+if git push "$remote" "$branch"; then
+  echo "Pushed $branch to $remote."
+else
+  echo "Auto-push failed. Run 'git push $remote $branch' manually." >&2
+  exit 1
+fi

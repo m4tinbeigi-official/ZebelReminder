@@ -21,9 +21,8 @@ View your app in AI Studio: https://ai.studio/apps/c30bdb49-7acc-40f3-85d9-8602a
 
 ## Release build
 
-Release artifacts must be signed with a real upload/release keystore. The build
-fails intentionally if these values are missing, so a debug-signed or unsigned
-file is not produced for release:
+Release artifacts must be signed with a real upload/release keystore when building
+locally with signing env vars configured:
 
 ```bash
 export RELEASE_KEY_FILE=/absolute/path/to/upload-keystore.jks
@@ -32,3 +31,32 @@ export RELEASE_KEY_ALIAS=your_key_alias
 export RELEASE_KEY_PASSWORD=your_key_password
 ./gradlew assembleRelease bundleRelease
 ```
+
+Without signing env vars, `./gradlew assembleRelease` produces an unsigned APK.
+
+## Automatic release pipeline
+
+Every push to `main` triggers GitHub Actions to:
+
+1. Bump `version.properties` (`versionCode` + `versionPatch`)
+2. Build and sign release APK/AAB
+3. Publish a GitHub Release with both artifacts
+4. Commit the version bump back to `main` with `[skip ci]`
+
+Version numbers live in `version.properties` at the repo root.
+
+Required GitHub repository secrets:
+
+- `RELEASE_KEY_BASE64`
+- `RELEASE_STORE_PASSWORD`
+- `RELEASE_KEY_PASSWORD`
+- `RELEASE_KEY_ALIAS`
+
+## Auto-push after commit
+
+Run once to enable automatic `git push` after every local commit:
+
+```bash
+./scripts/setup-git-hooks.sh
+```
+
