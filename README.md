@@ -17,5 +17,18 @@ View your app in AI Studio: https://ai.studio/apps/c30bdb49-7acc-40f3-85d9-8602a
 2. Select **Open** and choose the directory containing this project
 3. Allow Android Studio to fix any incompatibilities as it imports the project.
 4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+5. Run the app on an emulator or physical device
+
+## Release build
+
+Release artifacts must be signed with a real upload/release keystore. The build
+fails intentionally if these values are missing, so a debug-signed or unsigned
+file is not produced for release:
+
+```bash
+export RELEASE_KEY_FILE=/absolute/path/to/upload-keystore.jks
+export RELEASE_STORE_PASSWORD=your_store_password
+export RELEASE_KEY_ALIAS=your_key_alias
+export RELEASE_KEY_PASSWORD=your_key_password
+./gradlew assembleRelease bundleRelease
+```

@@ -40,11 +40,7 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      
-      val keystoreFile = file(System.getenv("RELEASE_KEY_FILE") ?: "${rootDir}/my-upload-key.jks")
-      if (keystoreFile.exists() && System.getenv("RELEASE_STORE_PASSWORD") != null) {
-        signingConfig = signingConfigs.getByName("release")
-      }
+      signingConfig = signingConfigs.getByName("release")
     }
     debug {
     }
@@ -163,4 +159,35 @@ tasks.register("downloadVazirFont") {
 
 tasks.matching { it.name == "preBuild" }.configureEach {
     dependsOn("downloadVazirFont")
+}
+
+tasks.register("validateReleaseSigning") {
+    doLast {
+        val keystorePath = System.getenv("RELEASE_KEY_FILE") ?: "${rootDir}/my-upload-key.jks"
+        val keystoreFile = file(keystorePath)
+        val missingValues = listOf(
+            "RELEASE_STORE_PASSWORD" to System.getenv("RELEASE_STORE_PASSWORD"),
+            "RELEASE_KEY_PASSWORD" to System.getenv("RELEASE_KEY_PASSWORD"),
+            "RELEASE_KEY_ALIAS" to System.getenv("RELEASE_KEY_ALIAS"),
+        ).filter { (_, value) -> value.isNullOrBlank() }
+            .map { (name, _) -> name }
+
+        if (!keystoreFile.isFile) {
+            throw GradleException(
+                "Release signing key not found at ${keystoreFile.absolutePath}. " +
+                    "Set RELEASE_KEY_FILE to a real release/upload keystore."
+            )
+        }
+
+        if (missingValues.isNotEmpty()) {
+            throw GradleException(
+                "Release signing is incomplete. Missing environment variables: " +
+                    missingValues.joinToString(", ")
+            )
+        }
+    }
+}
+
+tasks.matching { it.name in listOf("assembleRelease", "bundleRelease") }.configureEach {
+    dependsOn("validateReleaseSigning")
 }

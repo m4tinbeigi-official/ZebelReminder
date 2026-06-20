@@ -31,22 +31,31 @@ jobs:
     - name: Create .env file for Secrets Gradle Plugin
       run: echo "GEMINI_API_KEY=placeholder" > .env
 
+    - name: Validate release signing secrets
+      run: |
+        test -n "${{ secrets.RELEASE_KEY_BASE64 }}"
+        test -n "${{ secrets.RELEASE_STORE_PASSWORD }}"
+        test -n "${{ secrets.RELEASE_KEY_PASSWORD }}"
+        test -n "${{ secrets.RELEASE_KEY_ALIAS }}"
+
     - name: Decode Keystore File
       run: echo "${{ secrets.RELEASE_KEY_BASE64 }}" | base64 -d > ${{ github.workspace }}/release.jks
 
-    - name: Build and Sign Release APK
+    - name: Build and Sign Release APK and AAB
       env:
         RELEASE_KEY_FILE: ${{ github.workspace }}/release.jks
         RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleRelease bundleRelease
 
-    - name: Upload Release APK Artifact
+    - name: Upload Release Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: app-release-signed
-        path: app/build/outputs/apk/release/app-release.apk
+        path: |
+          app/build/outputs/apk/release/app-release.apk
+          app/build/outputs/bundle/release/app-release.aab
 
     - name: Create GitHub Release
       if: github.event_name == 'push'
@@ -54,7 +63,9 @@ jobs:
       with:
         tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v1.0.{0}', github.run_number) }}
         name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Release v1.0.{0}', github.run_number) }}
-        files: app/build/outputs/apk/release/app-release.apk
+        files: |
+          app/build/outputs/apk/release/app-release.apk
+          app/build/outputs/bundle/release/app-release.aab
         draft: false
         prerelease: false
       env:
